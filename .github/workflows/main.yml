@@ -31,4 +31,5 @@ jobs:
           pip install -r requirements.txt
       - name: Run Unit Tests
         run: |
+          cd django_todo
           python manage.py test
