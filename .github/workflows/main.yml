@@ -16,3 +16,20 @@ jobs:
       - name: Lint Code
         run: |
           flake8 --extend-exclude settings.py
+  django_unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Project Dependencies
+        run: |
+          cd django_todo
+          pip install -r requirements.txt
+      - name: Run Unit Tests
+        run: |
+          cd django_todo
+          python manage.py test
