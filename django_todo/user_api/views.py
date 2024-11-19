@@ -31,13 +31,19 @@ class UserViewSet(ReadOnlyModelViewSet):
                     email=serializer.validated_data["email"]
                 )
                 return Response(status=status.HTTP_201_CREATED)
-            
+
             else:
-                return Response(pswd_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+                return Response(
+                    pswd_serializer.errors, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                serializer.errors, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     @action(detail=False, methods=["PUT"])
     def change_password(self, request):
         # Validate request data
@@ -45,9 +51,14 @@ class UserViewSet(ReadOnlyModelViewSet):
 
         if pswd_serializer.is_valid():
             # Update the user's password
-            request.user.set_password(pswd_serializer.validated_data["password"])
+            request.user.set_password(
+                pswd_serializer.validated_data["password"]
+            )
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
         else:
-            return Response(pswd_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                pswd_serializer.errors, 
+                status=status.HTTP_400_BAD_REQUEST
+            )

@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -123,7 +122,7 @@ class UserAPITests(APITestCase):
 
     def test_user_change_password_unauthorized(self):
         # Create test user
-        user = User.objects.create_user(
+        User.objects.create_user(
             username="DylanCheetah",
             password="cheetahs_are_awesome",
             email="dylan.the.cheetah@gmail.com"

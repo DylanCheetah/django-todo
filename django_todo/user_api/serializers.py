@@ -18,6 +18,8 @@ class PasswordSerializer(serializers.Serializer):
         Ensure that passwords are at least 8 characters long.
         """
         if len(value) < 8:
-            raise serializers.ValidationError("Passwords must be at least 8 characters long.")
-        
+            raise serializers.ValidationError(
+                "Passwords must be at least 8 characters long."
+            )
+
         return value
