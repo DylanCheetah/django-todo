@@ -12,7 +12,7 @@ from .serializers import PasswordSerializer, UserSerializer
 # ===============
 class UserViewSet(ReadOnlyModelViewSet):
     serializer_class = UserSerializer
-    queryset = User.objects.all()
+    queryset = User.objects.order_by("username")
     permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=["POST"], permission_classes=[])
@@ -21,22 +21,13 @@ class UserViewSet(ReadOnlyModelViewSet):
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
-            pswd_serializer = PasswordSerializer(data=request.data)
-
-            if pswd_serializer.is_valid():
-                # Create user
-                User.objects.create_user(
-                    username=serializer.validated_data["username"],
-                    password=pswd_serializer.validated_data["password"],
-                    email=serializer.validated_data["email"]
-                )
-                return Response(status=status.HTTP_201_CREATED)
-
-            else:
-                return Response(
-                    pswd_serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            # Create user
+            User.objects.create_user(
+                username=serializer.validated_data["username"],
+                password=serializer.validated_data["password"],
+                email=serializer.validated_data["email"]
+            )
+            return Response(status=status.HTTP_201_CREATED)
 
         else:
             return Response(
