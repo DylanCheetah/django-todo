@@ -34,13 +34,13 @@ class UserViewSet(ReadOnlyModelViewSet):
 
             else:
                 return Response(
-                    pswd_serializer.errors, 
+                    pswd_serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
         else:
             return Response(
-                serializer.errors, 
+                serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -59,6 +59,6 @@ class UserViewSet(ReadOnlyModelViewSet):
 
         else:
             return Response(
-                pswd_serializer.errors, 
+                pswd_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
