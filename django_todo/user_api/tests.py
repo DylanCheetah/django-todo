@@ -5,8 +5,6 @@ import jwt
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from . import utils
-
 
 # Test Cases
 # ==========
@@ -66,11 +64,15 @@ class UserAPITests(APITestCase):
         # Attempt to verify email address
         url = reverse("user-verify") + f"?token={token}"
         response = self.client.get(url)
-        self.assertContains(response, "Email Verified", status_code=status.HTTP_200_OK)
+        self.assertContains(
+            response,
+            "Email Verified",
+            status_code=status.HTTP_200_OK
+        )
 
     def test_user_verify_email_failure(self):
         # Create test user
-        user = User.objects.create_user(
+        User.objects.create_user(
             username="DylanCheetah",
             password="cheetahs_are_awesome",
             email="dylan.the.cheetah@gmail.com",
@@ -83,7 +85,11 @@ class UserAPITests(APITestCase):
         # Attempt to verify email address
         url = reverse("user-verify") + f"?token={token}"
         response = self.client.get(url)
-        self.assertContains(response, "Email Verification Failed", status_code=status.HTTP_200_OK)
+        self.assertContains(
+            response,
+            "Email Verification Failed",
+            status_code=status.HTTP_200_OK
+        )
 
     def test_user_login_valid(self):
         # Create test user

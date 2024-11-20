@@ -41,8 +41,11 @@ class UserViewSet(ReadOnlyModelViewSet):
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-    @action(detail=False, methods=["GET"], permission_classes=[], renderer_classes=[TemplateHTMLRenderer])
+
+    @action(detail=False,
+            methods=["GET"],
+            permission_classes=[],
+            renderer_classes=[TemplateHTMLRenderer])
     def verify(self, request):
         # Validate params
         if "token" not in request.query_params:
@@ -57,8 +60,8 @@ class UserViewSet(ReadOnlyModelViewSet):
                 },
                 template_name="user_api/verification_complete.html"
             )
-        
-        except:
+
+        except Exception:
             return Response(
                 {
                     "WEBSITE_NAME": settings.WEBSITE_NAME,

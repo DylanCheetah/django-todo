@@ -40,6 +40,7 @@ Content-Disposition: inline
     s.sendmail(settings.EMAIL_HOST_USER, recipient, msg)
     s.quit()
 
+
 def send_verification_email(user):
     # Generate verification token and compose URL
     token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
@@ -71,8 +72,8 @@ def send_verification_email(user):
             html
         )
 
-    except:
-        pass # Ignore email errors. We can always do manual verification. :)
+    except Exception:
+        pass  # Ignore email errors. We can always do manual verification. :)
 
 
 def verify_user(token):
