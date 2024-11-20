@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,10 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-87+glnof5eg&7kwhpt*4*$5jw!)ef-z3@5t1#3pjhyr=y6t_j9'
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", 
+    'django-insecure-87+glnof5eg&7kwhpt*4*$5jw!)ef-z3@5t1#3pjhyr=y6t_j9'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", True)
 
 ALLOWED_HOSTS = []
 
@@ -31,6 +35,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "user_api",
     "rest_framework",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -123,6 +128,13 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Email Settings
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = True
+
 # REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
@@ -132,3 +144,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication"
     ]
 }
+
+# Website Settings
+WEBSITE_NAME = "Django Todo"
+WEBSITE_HOST = "http://localhost:8000"
+WEBSITE_EMAIL = "dylan.the.cheetah@gmail.com"

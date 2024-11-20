@@ -1,0 +1,4 @@
+Welcome to {{ SITE_NAME }}!
+
+Please visit the following link to verify your email address and activate your account:
+{{ url }}

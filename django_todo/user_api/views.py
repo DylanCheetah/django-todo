@@ -1,10 +1,13 @@
+from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from . import utils
 from .serializers import PasswordSerializer, UserSerializer
 
 
@@ -22,17 +25,46 @@ class UserViewSet(ReadOnlyModelViewSet):
 
         if serializer.is_valid():
             # Create user
-            User.objects.create_user(
+            user = User.objects.create_user(
                 username=serializer.validated_data["username"],
                 password=serializer.validated_data["password"],
-                email=serializer.validated_data["email"]
+                email=serializer.validated_data["email"],
+                is_active=False
             )
+
+            # Send verification email
+            utils.send_verification_email(user)
             return Response(status=status.HTTP_201_CREATED)
 
         else:
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    @action(detail=False, methods=["GET"], permission_classes=[], renderer_classes=[TemplateHTMLRenderer])
+    def verify(self, request):
+        # Validate params
+        if "token" not in request.query_params:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify user
+        try:
+            utils.verify_user(request.query_params["token"])
+            return Response(
+                {
+                    "WEBSITE_NAME": settings.WEBSITE_NAME
+                },
+                template_name="user_api/verification_complete.html"
+            )
+        
+        except:
+            return Response(
+                {
+                    "WEBSITE_NAME": settings.WEBSITE_NAME,
+                    "WEBSITE_EMAIL": settings.WEBSITE_EMAIL
+                },
+                template_name="user_api/verification_failed.html"
             )
 
     @action(detail=False, methods=["PUT"])

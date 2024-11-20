@@ -1,7 +1,11 @@
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+import jwt
 from rest_framework import status
 from rest_framework.test import APITestCase
+
+from . import utils
 
 
 # Test Cases
@@ -20,6 +24,7 @@ class UserAPITests(APITestCase):
         self.assertEqual(User.objects.count(), 1)
         user = User.objects.get(username="DylanCheetah")
         self.assertEqual(user.email, data["email"])
+        self.assertFalse(user.is_active)
 
     def test_user_registration_invalid(self):
         # Create a test user
@@ -45,6 +50,40 @@ class UserAPITests(APITestCase):
         # Attempt to create duplicate user
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_user_verify_email(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com",
+            is_active=False
+        )
+
+        # Generate fake verification token for testing
+        token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+
+        # Attempt to verify email address
+        url = reverse("user-verify") + f"?token={token}"
+        response = self.client.get(url)
+        self.assertContains(response, "Email Verified", status_code=status.HTTP_200_OK)
+
+    def test_user_verify_email_failure(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com",
+            is_active=False
+        )
+
+        # Create fake verification token for testing
+        token = "cat"
+
+        # Attempt to verify email address
+        url = reverse("user-verify") + f"?token={token}"
+        response = self.client.get(url)
+        self.assertContains(response, "Email Verification Failed", status_code=status.HTTP_200_OK)
 
     def test_user_login_valid(self):
         # Create test user
