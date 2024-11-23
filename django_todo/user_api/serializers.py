@@ -27,7 +27,7 @@ class PasswordSerializer(serializers.Serializer):
             )
 
         return value
-    
+
 
 class EmailSerializer(serializers.Serializer):
     email = serializers.EmailField()

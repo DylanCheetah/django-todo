@@ -88,7 +88,7 @@ class UserViewSet(ReadOnlyModelViewSet):
                 pswd_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
     @action(detail=False, methods=["PUT"], serializer_class=EmailSerializer)
     def set_email(self, request):
         # Validate request data
@@ -103,6 +103,6 @@ class UserViewSet(ReadOnlyModelViewSet):
             # Send verification email
             utils.send_verification_email(request.user)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
