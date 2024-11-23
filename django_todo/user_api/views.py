@@ -71,7 +71,7 @@ class UserViewSet(ReadOnlyModelViewSet):
             )
 
     @action(detail=False, methods=["PUT"])
-    def change_password(self, request):
+    def set_password(self, request):
         # Validate request data
         pswd_serializer = PasswordSerializer(data=request.data)
 

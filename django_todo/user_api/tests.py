@@ -127,7 +127,7 @@ class UserAPITests(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_user_change_password_valid(self):
+    def test_user_set_password_valid(self):
         # Create test user
         user = User.objects.create_user(
             username="DylanCheetah",
@@ -139,14 +139,14 @@ class UserAPITests(APITestCase):
         self.client.force_authenticate(user)
 
         # Attempt to set valid password
-        url = reverse("user-change-password")
+        url = reverse("user-set-password")
         data = {
             "password": "cheetahs_are_great"
         }
         response = self.client.put(url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_user_change_password_invalid(self):
+    def test_user_set_password_invalid(self):
         # Create test user
         user = User.objects.create_user(
             username="DylanCheetah",
@@ -158,14 +158,14 @@ class UserAPITests(APITestCase):
         self.client.force_authenticate(user)
 
         # Attempt to set invalid password
-        url = reverse("user-change-password")
+        url = reverse("user-set-password")
         data = {
             "password": "cat"
         }
         response = self.client.put(url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_user_change_password_unauthorized(self):
+    def test_user_set_password_unauthorized(self):
         # Create test user
         User.objects.create_user(
             username="DylanCheetah",
@@ -174,9 +174,65 @@ class UserAPITests(APITestCase):
         )
 
         # Attempt to set valid password without logging in
-        url = reverse("user-change-password")
+        url = reverse("user-set-password")
         data = {
             "password": "cheetahs_are_fabulous"
+        }
+        response = self.client.put(url, data=data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_set_email_valid(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Force authentication
+        self.client.force_authenticate(user)
+
+        # Attempt to set a valid email address
+        url = reverse("user-set-email")
+        data = {
+            "email": "dylan_the_cheetah@outlook.com"
+        }
+        response = self.client.put(url, data=data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(user.email, data["email"])
+        self.assertFalse(user.is_active)
+
+    def test_user_set_email_invalid(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Force authentication
+        self.client.force_authenticate(user)
+
+        # Attempt to set an invalid email address
+        url = reverse("user-set-email")
+        data = {
+            "email": "junk"
+        }
+        response = self.client.put(url, data=data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_user_set_email_unauthorized(self):
+        # Create test user
+        User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Attempt to set a valid email address
+        url = reverse("user-set-email")
+        data = {
+            "email": "dylan_the_cheetah@outlook.com"
         }
         response = self.client.put(url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
