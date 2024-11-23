@@ -8,7 +8,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from . import utils
-from .serializers import EmailSerializer, PasswordSerializer, UserSerializer
+from .serializers import (
+    EmailSerializer,
+    PasswordSerializer,
+    PrivateUserSerializer,
+    UserSerializer
+)
 
 
 # Viewset Classes
@@ -112,3 +117,13 @@ class UserViewSet(ReadOnlyModelViewSet):
         # Delete the user
         request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=["GET"],
+            serializer_class=PrivateUserSerializer)
+    def me(self, request):
+        # Serialize return user data
+        user_serializer = PrivateUserSerializer(
+            request.user,
+            context={"request": request}
+        )
+        return Response(user_serializer.data)

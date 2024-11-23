@@ -269,3 +269,36 @@ class UserAPITests(APITestCase):
         url = reverse("user-delete")
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_me_valid(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Force authentication
+        self.client.force_authenticate(user)
+
+        # Attempt to fetch info for the authenticated user
+        url = reverse("user-me")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertTrue("url" in payload and "id" in payload)
+        self.assertEqual(payload["username"], "DylanCheetah")
+        self.assertEqual(payload["email"], "dylan.the.cheetah@gmail.com")
+
+    def test_user_me_unauthorized(self):
+        # Create test user
+        User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Attempt to fetch info for the authenticated user
+        url = reverse("user-me")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
