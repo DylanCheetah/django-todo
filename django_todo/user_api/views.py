@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from . import utils
-from .serializers import PasswordSerializer, UserSerializer
+from .serializers import EmailSerializer, PasswordSerializer, UserSerializer
 
 
 # Viewset Classes
@@ -70,7 +70,7 @@ class UserViewSet(ReadOnlyModelViewSet):
                 template_name="user_api/verification_failed.html"
             )
 
-    @action(detail=False, methods=["PUT"])
+    @action(detail=False, methods=["PUT"], serializer_class=PasswordSerializer)
     def set_password(self, request):
         # Validate request data
         pswd_serializer = PasswordSerializer(data=request.data)
@@ -88,3 +88,21 @@ class UserViewSet(ReadOnlyModelViewSet):
                 pswd_serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+    @action(detail=False, methods=["PUT"], serializer_class=EmailSerializer)
+    def set_email(self, request):
+        # Validate request data
+        email_serializer = EmailSerializer(data=request.data)
+
+        if email_serializer.is_valid():
+            # Update the user's email address
+            request.user.email = email_serializer.validated_data["email"]
+            request.user.is_active = False
+            request.user.save()
+
+            # Send verification email
+            utils.send_verification_email(request.user)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
