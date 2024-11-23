@@ -106,3 +106,9 @@ class UserViewSet(ReadOnlyModelViewSet):
 
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["DELETE"])
+    def delete(self, request):
+        # Delete the user
+        request.user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

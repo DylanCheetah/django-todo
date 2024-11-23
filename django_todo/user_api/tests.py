@@ -236,3 +236,36 @@ class UserAPITests(APITestCase):
         }
         response = self.client.put(url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_delete_valid(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Force authentication
+        self.client.force_authenticate(user)
+
+        # Attempt to delete the user account
+        url = reverse("user-delete")
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(
+            User.objects.filter(username="DylanCheetah").count(),
+            0
+        )
+
+    def test_user_delete_unauthorized(self):
+        # Create test user
+        User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Attempt to delete the user account
+        url = reverse("user-delete")
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
