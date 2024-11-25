@@ -5,6 +5,9 @@ import jwt
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from .models import Ban
+from . import utils
+
 
 # Test Cases
 # ==========
@@ -49,7 +52,7 @@ class UserAPITests(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_user_verify_email(self):
+    def test_user_verify_email_valid(self):
         # Create test user
         user = User.objects.create_user(
             username="DylanCheetah",
@@ -70,7 +73,7 @@ class UserAPITests(APITestCase):
             status_code=status.HTTP_200_OK
         )
 
-    def test_user_verify_email_failure(self):
+    def test_user_verify_email_unauthorized(self):
         # Create test user
         User.objects.create_user(
             username="DylanCheetah",
@@ -88,7 +91,30 @@ class UserAPITests(APITestCase):
         self.assertContains(
             response,
             "Email Verification Failed",
-            status_code=status.HTTP_200_OK
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_user_verify_ban_evade(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Ban the user
+        utils.ban_user(user, "Ban evade test.")
+
+        # Generate fake verification token for testing
+        token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+
+        # Attempt to verify email address
+        url = reverse("user-verify") + f"?token={token}"
+        response = self.client.get(url)
+        self.assertContains(
+            response,
+            "Email Verification Failed",
+            status_code=status.HTTP_400_BAD_REQUEST
         )
 
     def test_user_login_valid(self):
@@ -394,3 +420,34 @@ class UserAPITests(APITestCase):
         }
         response = self.client.put(url, data=data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_ban_user(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Ban the user
+        utils.ban_user(user, "Ban system test.")
+        ban = Ban.objects.get(user=user)
+        self.assertFalse(user.is_active)
+        self.assertEqual(ban.user, user)
+        self.assertEqual(ban.reason, "Ban system test.")
+
+    def test_unban_user(self):
+        # Create test user
+        user = User.objects.create_user(
+            username="DylanCheetah",
+            password="cheetahs_are_awesome",
+            email="dylan.the.cheetah@gmail.com"
+        )
+
+        # Ban the user
+        utils.ban_user(user, "Ban system test.")
+
+        # Unban the user
+        utils.unban_user(user)
+        self.assertTrue(user.is_active)
+        self.assertEqual(Ban.objects.filter(user=user).count(), 0)

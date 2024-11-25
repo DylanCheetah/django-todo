@@ -73,7 +73,8 @@ class UserViewSet(ReadOnlyModelViewSet):
                     "WEBSITE_NAME": settings.WEBSITE_NAME,
                     "WEBSITE_EMAIL": settings.WEBSITE_EMAIL
                 },
-                template_name="user_api/verification_failed.html"
+                template_name="user_api/verification_failed.html",
+                status=status.HTTP_400_BAD_REQUEST
             )
 
     @action(detail=False, methods=["PUT"], serializer_class=PasswordSerializer)

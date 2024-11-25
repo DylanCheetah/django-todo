@@ -6,6 +6,9 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 import jwt
 
+from .errors import UserBanned
+from .models import Ban
+
 
 # Utility Functions
 # =================
@@ -80,8 +83,13 @@ def verify_user(token):
     # Decode token
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
 
-    # Verify user
+    # Make sure the user isn't banned
     user = User.objects.get(pk=payload["user_id"])
+
+    if Ban.objects.filter(user=user).count():
+        raise UserBanned("The user is banned.")
+
+    # Verify user
     user.is_active = True
     user.save()
 
@@ -132,4 +140,26 @@ def reset_password(token, password):
     # Reset password
     user = User.objects.get(pk=payload["user_id"])
     user.set_password(password)
+    user.save()
+
+
+def ban_user(user, reason=""):
+    # Mark the user as inactive
+    user.is_active = False
+    user.save()
+
+    # Add a ban entry
+    Ban.objects.create(user=user, reason=reason)
+
+
+def unban_user(user):
+    # Remove ban entry
+    try:
+        Ban.objects.get(user=user).delete()
+
+    except Ban.DoesNotExist:
+        pass  # Ignore this. Users that aren't banned don't need to be unbanned.
+
+    # Mark user as active
+    user.is_active = True
     user.save()
