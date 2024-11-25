@@ -10,6 +10,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from . import utils
 from .serializers import (
     EmailSerializer,
+    PasswordResetSerializer,
     PasswordSerializer,
     PrivateUserSerializer,
     UserSerializer
@@ -127,3 +128,49 @@ class UserViewSet(ReadOnlyModelViewSet):
             context={"request": request}
         )
         return Response(user_serializer.data)
+    
+    @action(detail=False, methods=["POST"],
+            permission_classes=[],
+            serializer_class=EmailSerializer)
+    def reset_password(self, request):
+        # Validate request data
+        email_serializer = EmailSerializer(data=request.data)
+
+        if email_serializer.is_valid():
+            # Fetch the users that are associated with the email address and send a password reset email
+            try:
+                users = User.objects.filter(email=email_serializer.validated_data["email"])
+
+                for user in users:
+                    utils.send_password_reset_email(user)
+
+            except User.DoesNotExist:
+                pass  # Ignore this exception. We don't want hackers or bots to be able to immediately
+                      # tell if the given email address corresponded to an existing account.
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["PUT"],
+            permission_classes=[],
+            serializer_class=PasswordResetSerializer)
+    def reset_password_finish(self, request):
+        # Validate request data
+        pswd_reset_serializer = PasswordResetSerializer(data=request.data)
+
+        if pswd_reset_serializer.is_valid():
+            # Reset password
+            try:
+                utils.reset_password(
+                    pswd_reset_serializer.validated_data["token"],
+                    pswd_reset_serializer.validated_data["password"]
+                )
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            
+            except Exception:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

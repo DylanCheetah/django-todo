@@ -84,3 +84,50 @@ def verify_user(token):
     user = User.objects.get(pk=payload["user_id"])
     user.is_active = True
     user.save()
+
+
+def send_password_reset_email(user):
+    # Generate password reset token and URL
+    token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+    url = settings.WEBSITE_HOST + f"/accounts/reset_password/?token={token}"
+
+    # Compose email message
+    text = render_to_string(
+        "user_api/password_reset.txt",
+        {
+            "WEBSITE_NAME": settings.WEBSITE_NAME,
+            "url": url,
+            "username": user.username
+        }
+    )
+    html = render_to_string(
+        "user_api/password_reset.html",
+        {
+            "WEBSITE_NAME": settings.WEBSITE_NAME,
+            "url": url,
+            "username": user.username
+        }
+    )
+
+    # Send email message
+    try:
+        send_email(
+            settings.EMAIL_HOST_USER,
+            user.email,
+            "Password Reset",
+            text,
+            html
+        )
+
+    except Exception:
+        pass  # Ignore email errors. The process can be repeated or the user can contact us for assistance.
+
+
+def reset_password(token, password):
+    # Decode token
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+    # Reset password
+    user = User.objects.get(pk=payload["user_id"])
+    user.set_password(password)
+    user.save()

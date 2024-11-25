@@ -37,3 +37,7 @@ class PrivateUserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ["url", "id", "username", "email"]
+
+
+class PasswordResetSerializer(PasswordSerializer):
+    token = serializers.CharField()
