@@ -91,7 +91,8 @@ def verify_user(token):
 
     # Check token scope
     if payload["scope"] != "VERIFY_EMAIL":
-        raise InvalidTokenScope("The scope of the given token doesn't permit email verification.")
+        raise InvalidTokenScope(
+            "The scope of the given token doesn't permit email verification.")
 
     # Make sure the user isn't banned
     user = User.objects.get(pk=payload["user_id"])
@@ -155,7 +156,8 @@ def reset_password(token, password):
 
     # Check token scope
     if payload["scope"] != "RESET_PASSWORD":
-        raise InvalidTokenScope("The scope of the given token doesn't permit password resets.")
+        raise InvalidTokenScope(
+            "The scope of the given token doesn't permit password resets.")
 
     # Reset password
     user = User.objects.get(pk=payload["user_id"])
@@ -178,7 +180,8 @@ def unban_user(user):
         Ban.objects.get(user=user).delete()
 
     except Ban.DoesNotExist:
-        pass  # Ignore this. Users that aren't banned don't need to be unbanned.
+        # Ignore this. Users that aren't banned don't need to be unbanned.
+        pass
 
     # Mark user as active
     user.is_active = True

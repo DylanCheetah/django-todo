@@ -10,7 +10,9 @@ from . import utils
 
 # Model Admin Classes
 # ===================
-admin.site.unregister(User)  # We need to unregister the default user model admin first
+# We need to unregister the default user model admin first
+admin.site.unregister(User)
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
