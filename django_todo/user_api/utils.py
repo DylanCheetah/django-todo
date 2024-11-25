@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 import jwt
 
-from .errors import UserBanned
+from .errors import InvalidTokenScope, UserBanned
 from .models import Ban
 
 
@@ -46,7 +46,13 @@ Content-Disposition: inline
 
 def send_verification_email(user):
     # Generate verification token and compose URL
-    token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+    token = jwt.encode(
+        {
+            "user_id": user.id,
+            "scope": "VERIFY_EMAIL"
+        },
+        settings.SECRET_KEY
+    )
     url = settings.WEBSITE_HOST + reverse("user-verify") + f"?token={token}"
 
     # Compose email message
@@ -83,6 +89,10 @@ def verify_user(token):
     # Decode token
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
 
+    # Check token scope
+    if payload["scope"] != "VERIFY_EMAIL":
+        raise InvalidTokenScope("The scope of the given token doesn't permit email verification.")
+
     # Make sure the user isn't banned
     user = User.objects.get(pk=payload["user_id"])
 
@@ -96,7 +106,13 @@ def verify_user(token):
 
 def send_password_reset_email(user):
     # Generate password reset token and URL
-    token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+    token = jwt.encode(
+        {
+            "user_id": user.id,
+            "scope": "RESET_PASSWORD"
+        },
+        settings.SECRET_KEY
+    )
     url = settings.WEBSITE_HOST + f"/accounts/reset_password/?token={token}"
 
     # Compose email message
@@ -136,6 +152,10 @@ def send_password_reset_email(user):
 def reset_password(token, password):
     # Decode token
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+
+    # Check token scope
+    if payload["scope"] != "RESET_PASSWORD":
+        raise InvalidTokenScope("The scope of the given token doesn't permit password resets.")
 
     # Reset password
     user = User.objects.get(pk=payload["user_id"])

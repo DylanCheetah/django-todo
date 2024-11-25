@@ -62,7 +62,13 @@ class UserAPITests(APITestCase):
         )
 
         # Generate fake verification token for testing
-        token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+        token = jwt.encode(
+            {
+                "user_id": user.id,
+                "scope": "VERIFY_EMAIL"
+            },
+            settings.SECRET_KEY
+        )
 
         # Attempt to verify email address
         url = reverse("user-verify") + f"?token={token}"
@@ -106,7 +112,13 @@ class UserAPITests(APITestCase):
         utils.ban_user(user, "Ban evade test.")
 
         # Generate fake verification token for testing
-        token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+        token = jwt.encode(
+            {
+                "user_id": user.id,
+                "scope": "VERIFY_EMAIL"
+            },
+            settings.SECRET_KEY
+        )
 
         # Attempt to verify email address
         url = reverse("user-verify") + f"?token={token}"
@@ -370,7 +382,13 @@ class UserAPITests(APITestCase):
         )
 
         # Generate fake password reset token for testing purposes
-        token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+        token = jwt.encode(
+            {
+                "user_id": user.id,
+                "scope": "RESET_PASSWORD"
+            },
+            settings.SECRET_KEY
+        )
 
         # Send valid password reset request
         url = reverse("user-reset-password-finish")
@@ -390,7 +408,13 @@ class UserAPITests(APITestCase):
         )
 
         # Generate fake password reset token for testing purposes
-        token = jwt.encode({"user_id": user.id}, settings.SECRET_KEY)
+        token = jwt.encode(
+            {
+                "user_id": user.id,
+                "scope": "RESET_PASSWORD"
+            },
+            settings.SECRET_KEY
+        )
 
         # Send valid password reset request
         url = reverse("user-reset-password-finish")
