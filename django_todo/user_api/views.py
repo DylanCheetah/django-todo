@@ -128,7 +128,7 @@ class UserViewSet(ReadOnlyModelViewSet):
             context={"request": request}
         )
         return Response(user_serializer.data)
-    
+
     @action(detail=False, methods=["POST"],
             permission_classes=[],
             serializer_class=EmailSerializer)
@@ -137,19 +137,24 @@ class UserViewSet(ReadOnlyModelViewSet):
         email_serializer = EmailSerializer(data=request.data)
 
         if email_serializer.is_valid():
-            # Fetch the users that are associated with the email address and send a password reset email
+            # Fetch the users that are associated with the email address and
+            # send a password reset email
             try:
-                users = User.objects.filter(email=email_serializer.validated_data["email"])
+                users = User.objects.filter(
+                    email=email_serializer.validated_data["email"]
+                )
 
                 for user in users:
                     utils.send_password_reset_email(user)
 
             except User.DoesNotExist:
-                pass  # Ignore this exception. We don't want hackers or bots to be able to immediately
-                      # tell if the given email address corresponded to an existing account.
+                # Ignore this exception. We don't want hackers or bots
+                # to be able to immediately tell if the given email
+                # address corresponded to an existing account.
+                pass
 
             return Response(status=status.HTTP_204_NO_CONTENT)
-        
+
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -168,9 +173,9 @@ class UserViewSet(ReadOnlyModelViewSet):
                     pswd_reset_serializer.validated_data["password"]
                 )
                 return Response(status=status.HTTP_204_NO_CONTENT)
-            
+
             except Exception:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            
+
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)

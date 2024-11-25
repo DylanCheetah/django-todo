@@ -377,7 +377,7 @@ class UserAPITests(APITestCase):
 
     def test_reset_password_finish_unauthorized(self):
         # Create test user
-        user = User.objects.create_user(
+        User.objects.create_user(
             username="DylanCheetah",
             password="cheetahs_are_awesome",
             email="dylan.the.cheetah@gmail.com"

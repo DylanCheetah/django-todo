@@ -120,7 +120,9 @@ def send_password_reset_email(user):
         )
 
     except Exception:
-        pass  # Ignore email errors. The process can be repeated or the user can contact us for assistance.
+        # Ignore email errors. The process can be repeated or the user can
+        # contact us for assistance.
+        pass
 
 
 def reset_password(token, password):
