@@ -45,7 +45,7 @@ class TodoList(models.Model):
     name = models.CharField(max_length=64)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.owner})"
 
 
 class Task(models.Model):
