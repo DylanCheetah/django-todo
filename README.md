@@ -204,3 +204,106 @@ urlpatterns = [
 ```
 11. execute `python manage.py runserver`
 12. visit http://localhost:8000/ in a web browser and you should see the message "Under construction."
+
+### Phase 6: Account Registration
+01. create "django_todo/todo/forms.py"
+02. place the following code into the new file:
+```python
+from django import forms
+
+
+# Form Classes
+# ============
+class RegistrationForm(forms.Form):
+    username = forms.CharField(max_length=64, widget=forms.TextInput({"class": "m-1 form-control"}))
+    password = forms.CharField(max_length=128, widget=forms.PasswordInput({"class": "m-1 form-control"}))
+    confirm_password = forms.CharField(max_length=128, widget=forms.PasswordInput({"class": "m-1 form-control"}))
+
+    def clean_confirm_password(self):
+        # Password and confirm password must match
+        if self.cleaned_data["password"] != self.cleaned_data["confirm_password"]:
+            raise forms.ValidationError("The passwords must match.")
+```
+03. create "django_todo/todo/templates/todo/register.html"
+04. place the following code into the new file:
+```html
+{% extends "todo/layout.html" %}
+
+{% block title %}Todo - Register{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <h1 class="col-10 m-2">Register</h1>
+        </div>
+        <div class="row justify-content-center">
+            <form class="col-10 m-2 card" action="" method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    {{ form }}
+                    <input class="m-1 form-control btn btn-primary" type="submit" value="Register">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+```
+05. modify "django_todo/todo/views.py" like this:
+```python
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from django.shortcuts import redirect, render
+from django.urls import reverse
+
+from .forms import RegistrationForm
+
+
+# View Functions
+# ==============
+def index(request):
+    return render(
+        request,
+        "todo/index.html",
+        {}
+    )
+
+
+def register(request):
+    form = RegistrationForm()
+
+    # Process submitted form data
+    if request.method == "POST":
+        # Validate form data
+        form = RegistrationForm(request.POST)
+
+        if form.is_valid():
+            # Create new user account
+            user = User.objects.create(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"]
+            )
+
+            # Log in and redirect to the homepage
+            login(request, user)
+            return redirect(reverse("todo-index"))
+
+    return render(
+        request,
+        "todo/register.html",
+        {
+            "form": form
+        }
+    )
+```
+06. modify "django_todo/todo/urls.py" like this:
+```python
+from django.urls import path
+
+from .views import index, register
+
+
+urlpatterns = [
+    path("", index, name="todo-index"),
+    path("account/register/", register, name="todo-register")
+]
+```

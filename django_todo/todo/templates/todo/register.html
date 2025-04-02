@@ -1,0 +1,20 @@
+{% extends "todo/layout.html" %}
+
+{% block title %}Todo - Register{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <h1 class="col-10 m-2">Register</h1>
+        </div>
+        <div class="row justify-content-center">
+            <form class="col-10 m-2 card" action="" method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    {{ form }}
+                    <input class="m-1 form-control btn btn-primary" type="submit" value="Register">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
