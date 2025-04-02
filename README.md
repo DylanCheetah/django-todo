@@ -9,6 +9,12 @@ A simple todo list web application implemented with Django.
 * Bootstrap
 
 
+## Prerequisites
+01. install Visual Studio Code
+02. install Python 3
+03. install Django via pip
+
+
 ## Tutorial
 ### Phase 1: Project Setup
 01. create a project folder
@@ -30,7 +36,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-## Phase 2: Data Models
+### Phase 2: Data Models
 01. open "django_todo/todo/models.py"
 02. modify the code like this:
 ```python
@@ -60,7 +66,7 @@ class Task(models.Model):
 03. execute `python manage.py makemigrations` to create migrations for the new data models
 04. execute `python manage.py migrate` to apply all migrations
 
-## Phase 3: Admin Site
+### Phase 3: Admin Site
 01. open "django_todo/todo/admin.py"
 02. modify the code like this:
 ```python
@@ -118,3 +124,9 @@ admin.site.register(TodoList, TodoListAdmin)
 05. visit http://localhost:8000/admin/ in a web browser
 06. login using the same credentials you used to create the superuser
 07. you should be able to view, create, edit, and delete registered data models
+
+### Phase 4: Install Bootstrap
+01. create "django_todo/todo/static/todo/css/"
+02. copy "bootstrap.min.css" to the new folder
+02. create "django_todo/todo/static/todo/js/"
+03. copy "bootstrap.bundle.js" to the new folder
