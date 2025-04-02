@@ -237,7 +237,7 @@ class RegistrationForm(forms.Form):
             <h1 class="col-10 m-2">Register</h1>
         </div>
         <div class="row justify-content-center">
-            <form class="col-10 m-2 card" action="" method="post">
+            <form class="col-10 m-2 card text-bg-light" action="" method="post">
                 {% csrf_token %}
                 <div class="card-body">
                     {{ form }}
@@ -307,3 +307,144 @@ urlpatterns = [
     path("account/register/", register, name="todo-register")
 ]
 ```
+07. execute `python manage.py runserver`
+08. visit http://localhost:8000/account/register/ and you should be able to register a new user account
+
+### Phase 7: User Login
+01. add the following code to "django_todo/todo/forms.py":
+```python
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=64, widget=forms.TextInput({"class": "m-1 form-control"}))
+    password = forms.CharField(max_length=128, widget=forms.PasswordInput({"class": "m-1 form-control"}))
+```
+02. create "django_todo/todo/templates/todo/login.html"
+03. place the following code into the new file:
+```html
+{% extends "todo/layout.html" %}
+
+{% block title %}Todo - Login{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <h1 class="col-10 m-2">Login</h1>
+        </div>
+        {% if error %}
+            <div class="row justify-content-center">
+                <div class="col-10 m-2 alert alert-danger">{{ error }}</div>
+            </div>
+        {% endif %}
+        <div class="row justify-content-center">
+            <form class="col-10 m-2 card text-bg-light" action="" method="post">
+                {% csrf_token %}
+                <div class="card-body">
+                    {{ form }}
+                    <input class="m-1 form-control btn btn-primary" type="submit" value="Login">
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+```
+04. modify "django_todo/todo/views.py" like this:
+```python
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.shortcuts import redirect, render
+from django.urls import reverse
+
+from .forms import LoginForm, RegistrationForm
+
+
+# View Functions
+# ==============
+def index(request):
+    return render(
+        request,
+        "todo/index.html",
+        {}
+    )
+
+
+def register(request):
+    form = RegistrationForm()
+
+    # Process submitted form data
+    if request.method == "POST":
+        # Validate form data
+        form = RegistrationForm(request.POST)
+
+        if form.is_valid():
+            # Create new user account
+            user = User.objects.create(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"]
+            )
+
+            # Log in and redirect to the homepage
+            login(request, user)
+            return redirect(reverse("todo-index"))
+
+    return render(
+        request,
+        "todo/register.html",
+        {
+            "form": form
+        }
+    )
+
+
+def login_view(request):
+    form = LoginForm()
+
+    # Process submitted form data
+    if request.method == "POST":
+        # Validate form data
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            # Authenticate the user
+            user = authenticate(
+                request,
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"]
+            )
+
+            if user:
+                # Log the user in and redirect
+                login(request, user)
+                return redirect(reverse("todo-index"))
+            
+            # Authentication failed
+            return render(
+                request,
+                "todo/login.html",
+                {
+                    "error": "Invalid user credentials.",
+                    "form": form
+                }
+            )
+        
+    return render(
+        request,
+        "todo/login.html",
+        {
+            "form": form
+        }
+    )
+```
+05. modify "django_todo/todo/urls.py" like this:
+```python
+from django.urls import path
+
+from .views import index, login_view, register
+
+
+urlpatterns = [
+    path("", index, name="todo-index"),
+    path("account/register/", register, name="todo-register"),
+    path("account/login/", login_view, name="todo-login")
+]
+```
+06. execute `python manage.py runserver`
+07. visit http://localhost:8000/account/login/ and you should be able to log in

@@ -1,18 +1,23 @@
 {% extends "todo/layout.html" %}
 
-{% block title %}Todo - Register{% endblock %}
+{% block title %}Todo - Login{% endblock %}
 
 {% block content %}
     <div class="container-fluid">
         <div class="row justify-content-center">
-            <h1 class="col-10 m-2">Register</h1>
+            <h1 class="col-10 m-2">Login</h1>
         </div>
+        {% if error %}
+            <div class="row justify-content-center">
+                <div class="col-10 m-2 alert alert-danger">{{ error }}</div>
+            </div>
+        {% endif %}
         <div class="row justify-content-center">
             <form class="col-10 m-2 card text-bg-light" action="" method="post">
                 {% csrf_token %}
                 <div class="card-body">
                     {{ form }}
-                    <input class="m-1 form-control btn btn-primary" type="submit" value="Register">
+                    <input class="m-1 form-control btn btn-primary" type="submit" value="Login">
                 </div>
             </form>
         </div>
