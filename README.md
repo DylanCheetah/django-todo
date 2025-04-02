@@ -130,3 +130,77 @@ admin.site.register(TodoList, TodoListAdmin)
 02. copy "bootstrap.min.css" to the new folder
 02. create "django_todo/todo/static/todo/js/"
 03. copy "bootstrap.bundle.js" to the new folder
+
+### Phase 5: Homepage
+01. create "django_todo/todo/templates/todo/layout.html"
+02. place the following code into the new file:
+```html
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{% block title %}{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'todo/css/bootstrap.min.css' %}">
+        <script src="{% static 'todo/js/bootstrap.bundle.js' %}"></script>
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
+```
+03. create "django_todo/todo/templates/todo/index.html"
+04. place the following code into the new file:
+```html
+{% extends "todo/layout.html" %}
+
+{% block title %}Todo{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        Under construction.
+    </div>
+{% endblock %}
+```
+05. open "django_todo/todo/views.py"
+06. modify the code like this:
+```python
+from django.shortcuts import render
+
+
+# View Functions
+# ==============
+def index(request):
+    return render(
+        request,
+        "todo/index.html",
+        {}
+    )
+```
+07. create "django_todo/todo/urls.py"
+08. place the following code in the new file:
+```python
+from django.urls import path
+
+from .views import index
+
+
+urlpatterns = [
+    path("", index, name="todo-index")
+]
+```
+09. open "django_todo/django_todo/urls.py"
+10. modify the code like this:
+```python
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path("", include("todo.urls")),
+    path('admin/', admin.site.urls),
+]
+```
+11. execute `python manage.py runserver`
+12. visit http://localhost:8000/ in a web browser and you should see the message "Under construction."
