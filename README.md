@@ -448,3 +448,115 @@ urlpatterns = [
 ```
 06. execute `python manage.py runserver`
 07. visit http://localhost:8000/account/login/ and you should be able to log in
+
+### Phase 8: Logging Out
+01. modify "django_todo/todo/views.py" like this:
+```python
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.shortcuts import redirect, render
+from django.urls import reverse
+
+from .forms import LoginForm, RegistrationForm
+
+
+# View Functions
+# ==============
+def index(request):
+    return render(
+        request,
+        "todo/index.html",
+        {}
+    )
+
+
+def register(request):
+    form = RegistrationForm()
+
+    # Process submitted form data
+    if request.method == "POST":
+        # Validate form data
+        form = RegistrationForm(request.POST)
+
+        if form.is_valid():
+            # Create new user account
+            user = User.objects.create(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"]
+            )
+
+            # Log in and redirect to the homepage
+            login(request, user)
+            return redirect(reverse("todo-index"))
+
+    return render(
+        request,
+        "todo/register.html",
+        {
+            "form": form
+        }
+    )
+
+
+def login_view(request):
+    form = LoginForm()
+
+    # Process submitted form data
+    if request.method == "POST":
+        # Validate form data
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            # Authenticate the user
+            user = authenticate(
+                request,
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"]
+            )
+
+            if user:
+                # Log the user in and redirect
+                login(request, user)
+                return redirect(reverse("todo-index"))
+            
+            # Authentication failed
+            return render(
+                request,
+                "todo/login.html",
+                {
+                    "error": "Invalid user credentials.",
+                    "form": form
+                }
+            )
+        
+    return render(
+        request,
+        "todo/login.html",
+        {
+            "form": form
+        }
+    )
+
+
+def logout_view(request):
+    # Log out and redirect
+    logout(request)
+    return redirect(reverse("todo-index"))
+```
+02. modify "django_todo/todo/urls.py" like this:
+```python
+from django.urls import path
+
+from .views import index, login_view, logout_view, register
+
+
+urlpatterns = [
+    path("", index, name="todo-index"),
+    path("account/register/", register, name="todo-register"),
+    path("account/login/", login_view, name="todo-login"),
+    path("account/logout/", logout_view, name="todo-logout")
+]
+```
+03. execute `python manage.py runserver`
+04. visit http://localhost:8000/account/logout/ and you should get redirected to the homepage after logging
+out

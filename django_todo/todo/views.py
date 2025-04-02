@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -82,3 +82,9 @@ def login_view(request):
             "form": form
         }
     )
+
+
+def logout_view(request):
+    # Log out and redirect
+    logout(request)
+    return redirect(reverse("todo-index"))
