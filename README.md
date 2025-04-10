@@ -560,3 +560,18 @@ urlpatterns = [
 03. execute `python manage.py runserver`
 04. visit http://localhost:8000/account/logout/ and you should get redirected to the homepage after logging
 out
+
+### Phase 9: Protecting Views
+01. import the `login_required` decorator from `django.contrib.auth.decorators`
+02. apply the `login_required` decorator to each view which should be only accessible when logged in:
+```python
+from django.contrib.auth.decorators import login_required
+...
+@login_required(login_url="/account/login/")
+def index(request):
+    return render(
+        request,
+        "todo/index.html",
+        {}
+    )
+```
