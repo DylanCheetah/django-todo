@@ -6,13 +6,14 @@ A simple todo list web application implemented with Django.
 * Visual Studio Code
 * Python 3
 * Django
+* Django REST Framework
 * Bootstrap
 
 
 ## Prerequisites
 01. install Visual Studio Code
 02. install Python 3
-03. install Django via pip
+03. install `Django` and `djangorestframework` via pip
 
 
 ## Tutorial
@@ -144,12 +145,15 @@ admin.site.register(TodoList, TodoListAdmin)
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{% static 'todo/css/bootstrap.min.css' %}">
         <script src="{% static 'todo/js/bootstrap.bundle.js' %}"></script>
+        {% block scripts %}
+        {% endblock %}
     </head>
     <body>
         {% block content %}
         {% endblock %}
     </body>
 </html>
+
 ```
 03. create "django_todo/todo/templates/todo/index.html"
 04. place the following code into the new file:
@@ -574,4 +578,110 @@ def index(request):
         "todo/index.html",
         {}
     )
+```
+
+### Phase 10: Todo List Backend
+01. add the following to the bottom of your "django_todo/django_todo/settings.py" file:
+```python
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+	"PAGE_SIZE": 10,
+	"DEFAULT_AUTHENTICATION_CLASSES": [
+	    "rest_framework.authentication.SessionAuthentication"
+	]
+}
+```
+02. add "rest_framework" to your list of installed apps:
+```python
+INSTALLED_APPS = [
+    "todo",
+    "rest_framework",
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+```
+03. create "django_todo/todo/serializers.py"
+04. place the following code into the new file:
+```python
+from rest_framework import serializers
+
+from .models import Task, TodoList
+
+
+# Serializer Classes
+# ==================
+class TodoListSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = TodoList
+        fields = ["url", "id", "name"]
+
+
+class TaskSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Task
+        fields = ["url", "id", "name", "due_date", "completed"]
+```
+05. update the imports in "django_todo/todo/views.py" like this:
+```python
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from rest_framework import permissions
+from rest_framework.viewsets import ModelViewSet
+
+from .forms import LoginForm, RegistrationForm
+from .models import Task, TodoList
+from .serializers import TaskSerializer, TodoListSerializer
+```
+06. add the following classes to "django_todo/todo/views.py":
+```python
+# Viewset Classes
+# ===============
+class TodoListViewSet(ModelViewSet):
+    serializer_class = TodoListSerializer
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
+
+    def get_queryset(self, request):
+        return TodoList.objects.filter(owner=request.user)
+    
+
+class TaskViewSet(ModelViewSet):
+    serializer_class = TaskSerializer
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
+
+    def get_queryset(self, request):
+        return Task.objects.filter(owner__owner=request.user)
+```
+07. modify "django_todo/todo/urls.py" like this:
+```python
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from . import views
+
+
+router = DefaultRouter()
+router.register("tasks", views.TaskViewSet, "task")
+router.register("todo-lists", views.TodoListViewSet, "todolist")
+
+
+urlpatterns = [
+    path("", views.index, name="todo-index"),
+    path("account/register/", views.register, name="todo-register"),
+    path("account/login/", views.login_view, name="todo-login"),
+    path("account/logout/", views.logout_view, name="todo-logout"),
+    path("api/", include(router.urls)),
+    path("auth/", include("rest_framework.urls"))
+]
 ```

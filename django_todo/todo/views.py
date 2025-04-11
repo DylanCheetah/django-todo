@@ -3,8 +3,34 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from rest_framework import permissions
+from rest_framework.viewsets import ModelViewSet
 
 from .forms import LoginForm, RegistrationForm
+from .models import Task, TodoList
+from .serializers import TaskSerializer, TodoListSerializer
+
+
+# Viewset Classes
+# ===============
+class TodoListViewSet(ModelViewSet):
+    serializer_class = TodoListSerializer
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
+
+    def get_queryset(self):
+        return TodoList.objects.filter(owner=self.request.user).order_by("name")
+    
+
+class TaskViewSet(ModelViewSet):
+    serializer_class = TaskSerializer
+    permission_classes = [
+        permissions.IsAuthenticated
+    ]
+
+    def get_queryset(self):
+        return Task.objects.filter(owner__owner=self.request.user).order_by("name")
 
 
 # View Functions
