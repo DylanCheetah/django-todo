@@ -14,6 +14,6 @@ urlpatterns = [
     path("account/register/", views.register, name="todo-register"),
     path("account/login/", views.login_view, name="todo-login"),
     path("account/logout/", views.logout_view, name="todo-logout"),
-    path("api/", include(router.urls)),
+    path("api/v1/", include(router.urls)),
     path("auth/", include("rest_framework.urls"))
 ]

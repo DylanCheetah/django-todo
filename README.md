@@ -681,7 +681,152 @@ urlpatterns = [
     path("account/register/", views.register, name="todo-register"),
     path("account/login/", views.login_view, name="todo-login"),
     path("account/logout/", views.logout_view, name="todo-logout"),
-    path("api/", include(router.urls)),
+    path("api/v1/", include(router.urls)),
     path("auth/", include("rest_framework.urls"))
 ]
+```
+
+### Phase 11: Todo List Frontend
+01. create "django_todo/todo/static/todo/js/todo-list.js"
+02. place the following content into the new file:
+```js
+document.addEventListener("DOMContentLoaded", () => {
+    // Globals
+    let todoLists = null;
+    let tasks = null;
+
+    // Functions
+    function loadTodoLists(url) {
+        fetch(
+            url,
+            {
+                credentials: "same-origin",
+                cache: "no-store"
+            }
+        )
+        .then((response) => response.json())
+        .then((payload) => {
+            // Store payload
+            todoLists = payload;
+
+            // Clear previous page of todo lists
+            let todoListView = document.querySelector("#todo-list-view");
+            console.log(todoListView);
+
+            while(todoListView.childElementCount) {
+                todoListView.removeChild(todoListView.firstChild);
+            }
+
+            // Display todo lists
+            todoLists.results.forEach((todoList) => {
+                // Create row
+                let row = document.createElement("div");
+                row.classList.add("row");
+
+                // Create todo list card
+                let todoListCard = document.createElement("div");
+                row.classList.add("col", "m-1", "card", "bg-light");
+                row.appendChild(todoListCard);
+
+                let cardBody = document.createElement("div");
+                cardBody.classList.add("card-body");
+                todoListCard.appendChild(cardBody);
+
+                let cardTitle = document.createElement("h5");
+                cardTitle.classList.add("card-title");
+                cardTitle.innerText = todoList.name;
+                cardBody.appendChild(cardTitle);
+
+                // Add row to todo list view
+                todoListView.appendChild(row);
+            });
+
+            // Hide busy indicator
+            document.querySelector("#todo-list-spinner").classList.add("d-none");
+        });
+    }
+
+
+    function loadTasks(url) {
+        fetch(
+            url,
+            {
+                credentials: "same-origin",
+                cache: "no-store"
+            }
+        )
+        .then((response) => response.json())
+        .then((payload) => {
+            tasks = payload;
+        });
+    }
+
+    // Load first page of todo lists
+    loadTodoLists("/api/todo-lists/");
+});
+```
+02. modify "django_todo/todo/templates/todo/layout.html" like this:
+```html
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{% block title %}{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'todo/css/bootstrap.min.css' %}">
+        <script src="{% static 'todo/js/bootstrap.bundle.js' %}"></script>
+        {% block scripts %}
+        {% endblock %}
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
+```
+03. modify "django_todo/todo/templates/todo/index.html" like this:
+```html
+{% extends "todo/layout.html" %}
+{% load static %}
+
+{% block title %}Todo{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'todo/js/todo-list.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row justify-content-center" id="todo-list-panel">
+            <div class="col-10 m-2 card">
+                <div class="card-body">
+                    <h1 class="card-title">Todo Lists</h1>
+                    <div id="todo-list-view"></div>
+                    <div class="row justify-content-center">
+                        <div class="spinner-border">
+                            <div class="visually-hidden">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center d-none" id="task-panel">
+            <div class="col-10 m-2 card">
+                <div class="card-body">
+                    <div class="row">
+                        <h1 class="col-11 card-title">Tasks</h1>
+                        <button class="col-1 btn btn-primary" id="back-btn">Back</button>
+                    </div>
+                    <div id="tasks-view"></div>
+                    <div class="row justify-content-center">
+                        <div class="spinner-border">
+                            <div class="visually-hidden">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
 ```
