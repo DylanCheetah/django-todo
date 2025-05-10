@@ -1,9 +1,37 @@
 {% extends "todo/layout.html" %}
+{% load static %}
 
 {% block title %}Todo{% endblock %}
 
+{% block scripts %}
+    <script src="{% static 'todo/js/todo-list.js' %}"></script>
+{% endblock %}
+
 {% block content %}
+    {% csrf_token %}
     <div class="container-fluid">
-        Under construction.
+        <div class="row justify-content-center">
+            <div class="col-10 m-2 card">
+                <div class="card-body">
+                    <h1 class="card-title">Todo Lists</h1>
+                    <div class="row justify-content-center">
+                        <input class="col-10 m-1" id="todoListNameInput" type="text" placeholder="New Todo List">
+                        <button class="col-1 m-1 btn btn-primary" id="addTodoList">Add</button>
+                    </div>
+                    <div id="todoListView"></div>
+                    <div class="row justify-content-center">
+                        <div class="spinner-border" id="todoListSpinner">
+                            <div class="visually-hidden">Loading...</div>
+                        </div>
+                    </div>
+                    <nav class="row justify-content-center">
+                        <ul class="col-2 m-1 pagination">
+                            <li class="page-item"><a class="page-link" id="prevPageBtn" href="#">Previous</a></li>
+                            <li class="page-item"><a class="page-link" id="nextPageBtn" href="#">Next</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}

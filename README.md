@@ -652,6 +652,9 @@ class TodoListViewSet(ModelViewSet):
 
     def get_queryset(self, request):
         return TodoList.objects.filter(owner=request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
     
 
 class TaskViewSet(ModelViewSet):
@@ -686,32 +689,32 @@ urlpatterns = [
 ]
 ```
 
-### Phase 11: Todo List Frontend
+### Phase 11: Todo List View
 01. create "django_todo/todo/static/todo/js/todo-list.js"
 02. place the following content into the new file:
 ```js
 document.addEventListener("DOMContentLoaded", () => {
     // Globals
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
     let todoLists = null;
-    let tasks = null;
 
     // Functions
     function loadTodoLists(url) {
-        fetch(
-            url,
-            {
+        // Show busy indicator
+        document.querySelector("#todoListSpinner").classList.remove("d-none");
+
+        // Fetch todo lists from server
+        fetch(url, {
                 credentials: "same-origin",
                 cache: "no-store"
-            }
-        )
+        })
         .then((response) => response.json())
         .then((payload) => {
             // Store payload
             todoLists = payload;
 
             // Clear previous page of todo lists
-            let todoListView = document.querySelector("#todo-list-view");
-            console.log(todoListView);
+            const todoListView = document.querySelector("#todoListView");
 
             while(todoListView.childElementCount) {
                 todoListView.removeChild(todoListView.firstChild);
@@ -725,44 +728,211 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Create todo list card
                 let todoListCard = document.createElement("div");
-                row.classList.add("col", "m-1", "card", "bg-light");
+                todoListCard.classList.add("col", "m-1", "card", "bg-light");
                 row.appendChild(todoListCard);
 
+                // Create card body
                 let cardBody = document.createElement("div");
-                cardBody.classList.add("card-body");
+                cardBody.classList.add("card-body", "row");
+                cardBody.id = `todoList${todoList.id}`;
                 todoListCard.appendChild(cardBody);
 
                 let cardTitle = document.createElement("h5");
-                cardTitle.classList.add("card-title");
+                cardTitle.classList.add("col-9", "m-1", "card-title");
+                cardTitle.id = `todoListTitle${todoList.id}`;
                 cardTitle.innerText = todoList.name;
                 cardBody.appendChild(cardTitle);
+
+                let cardEditBtn = document.createElement("button");
+                cardEditBtn.classList.add("col-1", "m-1", "btn", "btn-warning");
+                cardEditBtn.innerText = "Edit";
+                cardEditBtn.dataset.id = todoList.id;
+                cardEditBtn.addEventListener("click", (evt) => editTodoList(evt.target.dataset.id));
+                cardBody.appendChild(cardEditBtn);
+
+                let cardDeleteBtn = document.createElement("button");
+                cardDeleteBtn.classList.add("col-1", "m-1", "btn", "btn-danger");
+                cardDeleteBtn.innerText = "Delete";
+                cardDeleteBtn.dataset.id = todoList.id;
+                cardDeleteBtn.addEventListener("click", (evt) => deleteTodoList(evt.target.dataset.id));
+                cardBody.appendChild(cardDeleteBtn);
+
+                // Create editable card body
+                let cardBody2 = document.createElement("div");
+                cardBody2.classList.add("card-body", "row", "d-none");
+                cardBody2.id = `editableTodoList${todoList.id}`;
+                todoListCard.append(cardBody2);
+
+                let cardTitleInput = document.createElement("input");
+                cardTitleInput.classList.add("col-9", "m-1");
+                cardTitleInput.id = `todoListTitleInput${todoList.id}`;
+                cardTitleInput.type = "text";
+                cardTitleInput.value = todoList.name;
+                cardBody2.appendChild(cardTitleInput);
+
+                let cardConfirmEditBtn = document.createElement("button");
+                cardConfirmEditBtn.classList.add("col-1", "m-1", "btn", "btn-success");
+                cardConfirmEditBtn.innerText = "Confirm";
+                cardConfirmEditBtn.dataset.id = todoList.id;
+                cardConfirmEditBtn.addEventListener("click", (evt) => confirmEditTodoList(evt.target.dataset.id));
+                cardBody2.appendChild(cardConfirmEditBtn);
+
+                let cardCancelEditBtn = document.createElement("button");
+                cardCancelEditBtn.classList.add("col-1", "m-1", "btn", "btn-danger");
+                cardCancelEditBtn.innerText = "Cancel";
+                cardCancelEditBtn.dataset.id = todoList.id;
+                cardCancelEditBtn.addEventListener("click", (evt) => cancelEditTodoList(evt.target.dataset.id));
+                cardBody2.appendChild(cardCancelEditBtn);
 
                 // Add row to todo list view
                 todoListView.appendChild(row);
             });
 
+            // Update page turner
+            // TODO
+
             // Hide busy indicator
-            document.querySelector("#todo-list-spinner").classList.add("d-none");
+            document.querySelector("#todoListSpinner").classList.add("d-none");
         });
     }
 
 
-    function loadTasks(url) {
-        fetch(
-            url,
-            {
-                credentials: "same-origin",
-                cache: "no-store"
+    function addTodoList() {
+        const nameInput = document.querySelector("#todoListNameInput");
+
+        fetch("/api/v1/todo-lists/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({
+                name: nameInput.value
+            }),
+            credentials: "same-origin",
+            cache: "no-store"
+        })
+        .then((response) => {
+            // Check status code
+            if(response.status != 201) {
+                alert("Failed to add todo list.");
+                return;
             }
-        )
-        .then((response) => response.json())
-        .then((payload) => {
-            tasks = payload;
+
+            // Clear todo list name input
+            nameInput.value = "";
+
+            // Reload todo lists
+            loadTodoLists("/api/v1/todo-lists/");
+        })
+        .catch((err) => {
+            console.error(err);
         });
     }
+
+
+    function editTodoList(id) {
+        // Hide read-only todo list and show editable todo list
+        document.querySelector(`#todoList${id}`).classList.add("d-none");
+        document.querySelector(`#editableTodoList${id}`).classList.remove("d-none");
+    }
+
+    
+    function deleteTodoList(id) {
+        fetch(`/api/v1/todo-lists/${id}/`, {
+            method: "DELETE",
+            headers: {
+                "X-CSRFToken": csrfToken
+            },
+            credentials: "same-origin",
+            cache: "no-store"
+        })
+        .then((response) => {
+            // Check status code
+            if(response.status != 204) {
+                alert("Failed to delete todo list.");
+                return;
+            }
+
+            // Reload todo lists
+            loadTodoLists("/api/v1/todo-lists/");
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+    }
+
+
+    function cancelEditTodoList(id) {
+        // Sync todo list title input with todo list title
+        document.querySelector(`#todoListTitleInput${id}`).value = document.querySelector(`#todoListTitle${id}`).innerText;
+
+        // Hide editable todo list and show read-only todo list
+        document.querySelector(`#editableTodoList${id}`).classList.add("d-none");
+        document.querySelector(`#todoList${id}`).classList.remove("d-none");
+    }
+
+
+    function confirmEditTodoList(id) {
+        console.log(`Confirm edit of todo list ${id}...`);
+
+        // Get new todo list name
+        const todoListTitleInput = document.querySelector(`#todoListTitleInput${id}`);
+
+        // Update todo list name
+        fetch(`/api/v1/todo-lists/${id}/`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({
+                name: todoListTitleInput.value
+            }),
+            credentials: "same-origin",
+            cache: "no-store"
+        })
+        .then((response) => {
+            // Check status code
+            if(response.status != 200) {
+                alert("Failed to update todo list.");
+                return;
+            }
+
+            // Reload todo lists
+            loadTodoLists("/api/v1/todo-lists/");
+        })
+    }
+
+
+    function previousPage() {
+        if(!todoLists.previous) {
+            return;
+        }
+
+        loadTodoLists(todoLists.previous);
+    }
+
+
+    function nextPage() {
+        if(!todoLists.next) {
+            return;
+        }
+        
+        loadTodoLists(todoLists.next);
+    }
+
+    // Add event listeners
+    const addTodoListBtn = document.querySelector("#addTodoList");
+    const prevPageBtn = document.querySelector("#prevPageBtn");
+    const nextPageBtn = document.querySelector("#nextPageBtn");
+
+    addTodoListBtn.addEventListener("click", addTodoList);
+    prevPageBtn.addEventListener("click", previousPage);
+    nextPageBtn.addEventListener("click", nextPage);
 
     // Load first page of todo lists
-    loadTodoLists("/api/todo-lists/");
+    loadTodoLists("/api/v1/todo-lists/");
 });
 ```
 02. modify "django_todo/todo/templates/todo/layout.html" like this:
@@ -797,33 +967,28 @@ document.addEventListener("DOMContentLoaded", () => {
 {% endblock %}
 
 {% block content %}
+    {% csrf_token %}
     <div class="container-fluid">
-        <div class="row justify-content-center" id="todo-list-panel">
+        <div class="row justify-content-center">
             <div class="col-10 m-2 card">
                 <div class="card-body">
                     <h1 class="card-title">Todo Lists</h1>
-                    <div id="todo-list-view"></div>
                     <div class="row justify-content-center">
-                        <div class="spinner-border">
+                        <input class="col-10 m-1" id="todoListNameInput" type="text" placeholder="New Todo List">
+                        <button class="col-1 m-1 btn btn-primary" id="addTodoList">Add</button>
+                    </div>
+                    <div id="todoListView"></div>
+                    <div class="row justify-content-center">
+                        <div class="spinner-border" id="todoListSpinner">
                             <div class="visually-hidden">Loading...</div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="row justify-content-center d-none" id="task-panel">
-            <div class="col-10 m-2 card">
-                <div class="card-body">
-                    <div class="row">
-                        <h1 class="col-11 card-title">Tasks</h1>
-                        <button class="col-1 btn btn-primary" id="back-btn">Back</button>
-                    </div>
-                    <div id="tasks-view"></div>
-                    <div class="row justify-content-center">
-                        <div class="spinner-border">
-                            <div class="visually-hidden">Loading...</div>
-                        </div>
-                    </div>
+                    <nav class="row justify-content-center">
+                        <ul class="col-2 m-1 pagination">
+                            <li class="page-item"><a class="page-link" id="prevPageBtn" href="#">Previous</a></li>
+                            <li class="page-item"><a class="page-link" id="nextPageBtn" href="#">Next</a></li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
