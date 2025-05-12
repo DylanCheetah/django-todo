@@ -793,6 +793,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Hide busy indicator
             document.querySelector("#todoListSpinner").classList.add("d-none");
+        })
+        .catch((err) => {
+            console.error(err);
         });
     }
 
@@ -902,6 +905,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // Reload todo lists
             loadTodoLists("/api/v1/todo-lists/");
         })
+        .catch((err) => {
+            console.error(err);
+        });
     }
 
 
@@ -995,3 +1001,6 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
 {% endblock %}
 ```
+
+### Phase 12: Task View
+TODO
