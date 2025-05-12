@@ -929,7 +929,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Add event listeners
-    const addTodoListBtn = document.querySelector("#addTodoList");
+    const addTodoListBtn = document.querySelector("#addTodoListBtn");
     const prevPageBtn = document.querySelector("#prevPageBtn");
     const nextPageBtn = document.querySelector("#nextPageBtn");
 
@@ -981,7 +981,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <h1 class="card-title">Todo Lists</h1>
                     <div class="row justify-content-center">
                         <input class="col-10 m-1" id="todoListNameInput" type="text" placeholder="New Todo List">
-                        <button class="col-1 m-1 btn btn-primary" id="addTodoList">Add</button>
+                        <button class="col-1 m-1 btn btn-primary" id="addTodoListBtn">Add</button>
                     </div>
                     <div id="todoListView"></div>
                     <div class="row justify-content-center">

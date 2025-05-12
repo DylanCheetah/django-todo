@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Add event listeners
-    const addTodoListBtn = document.querySelector("#addTodoList");
+    const addTodoListBtn = document.querySelector("#addTodoListBtn");
     const prevPageBtn = document.querySelector("#prevPageBtn");
     const nextPageBtn = document.querySelector("#nextPageBtn");
 
