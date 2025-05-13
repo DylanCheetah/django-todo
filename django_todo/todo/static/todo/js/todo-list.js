@@ -182,8 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function confirmEditTodoList(id) {
-        console.log(`Confirm edit of todo list ${id}...`);
-
         // Get new todo list name
         const todoListTitleInput = document.querySelector(`#todoListTitleInput${id}`);
 

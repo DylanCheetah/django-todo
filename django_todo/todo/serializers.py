@@ -5,13 +5,13 @@ from .models import Task, TodoList
 
 # Serializer Classes
 # ==================
-class TodoListSerializer(serializers.HyperlinkedModelSerializer):
+class TodoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TodoList
-        fields = ["url", "id", "name"]
+        fields = ["id", "name"]
 
 
-class TaskSerializer(serializers.HyperlinkedModelSerializer):
+class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["url", "id", "name", "due_date", "completed"]
+        fields = ["id", "todo_list", "name", "due_date", "completed"]

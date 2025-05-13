@@ -33,7 +33,12 @@ class TaskViewSet(ModelViewSet):
     ]
 
     def get_queryset(self):
-        return Task.objects.filter(owner__owner=self.request.user).order_by("name")
+        todo_list = self.request.query_params.get("todo_list")
+
+        if todo_list is not None:
+            return Task.objects.filter(todo_list__owner=self.request.user, todo_list=todo_list).order_by("name")
+        
+        return Task.objects.filter(todo_list__owner=self.request.user).order_by("name")
 
 
 # View Functions

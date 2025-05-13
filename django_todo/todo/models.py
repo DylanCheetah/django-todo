@@ -13,7 +13,7 @@ class TodoList(models.Model):
 
 
 class Task(models.Model):
-    owner = models.ForeignKey(TodoList, on_delete=models.CASCADE, related_name="tasks")
+    todo_list = models.ForeignKey(TodoList, on_delete=models.CASCADE, related_name="tasks")
     name = models.CharField(max_length=128)
     due_date = models.DateField()
     completed = models.BooleanField(default=False)

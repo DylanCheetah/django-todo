@@ -7,8 +7,8 @@ from .models import Task, TodoList
 # Model Admin Classes
 # ===================
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ["name", "owner__name", "owner__owner", "due_date"]
-    search_fields = ["name", "owner__name", "owner__owner__username"]
+    list_display = ["name", "todo_list__name", "todo_list__owner", "due_date"]
+    search_fields = ["name", "todo_list__name", "todo_list__owner__username"]
     actions = ["mark_complete", "mark_incomplete"]
 
     @admin.action(description="Mark as complete")

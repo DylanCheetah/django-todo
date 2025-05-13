@@ -56,7 +56,7 @@ class TodoList(models.Model):
 
 
 class Task(models.Model):
-    owner = models.ForeignKey(TodoList, on_delete=models.CASCADE, related_name="tasks")
+    todo_list = models.ForeignKey(TodoList, on_delete=models.CASCADE, related_name="tasks")
     name = models.CharField(max_length=128)
     due_date = models.DateField()
     completed = models.BooleanField(default=False)
@@ -80,8 +80,8 @@ from .models import Task, TodoList
 # Model Admin Classes
 # ===================
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ["name", "owner__name", "owner__owner", "due_date"]
-    search_fields = ["name", "owner__name", "owner__owner__username"]
+    list_display = ["name", "todo_list__name", "todo_list__owner", "due_date"]
+    search_fields = ["name", "todo_list__name", "todo_list__owner__username"]
     actions = ["mark_complete", "mark_incomplete"]
 
     @admin.action(description="Mark as complete")
@@ -615,16 +615,16 @@ from .models import Task, TodoList
 
 # Serializer Classes
 # ==================
-class TodoListSerializer(serializers.HyperlinkedModelSerializer):
+class TodoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TodoList
-        fields = ["url", "id", "name"]
+        fields = ["id", "name"]
 
 
-class TaskSerializer(serializers.HyperlinkedModelSerializer):
+class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["url", "id", "name", "due_date", "completed"]
+        fields = ["id", "todo_list", "name", "due_date", "completed"]
 ```
 05. update the imports in "django_todo/todo/views.py" like this:
 ```python
@@ -663,8 +663,13 @@ class TaskViewSet(ModelViewSet):
         permissions.IsAuthenticated
     ]
 
-    def get_queryset(self, request):
-        return Task.objects.filter(owner__owner=request.user)
+    def get_queryset(self):
+        todo_list = self.request.query_params.get("todo_list")
+
+        if todo_list is not None:
+            return Task.objects.filter(todo_list__owner=self.request.user, todo_list=todo_list).order_by("name")
+        
+        return Task.objects.filter(todo_list__owner=self.request.user).order_by("name")
 ```
 07. modify "django_todo/todo/urls.py" like this:
 ```python
@@ -877,8 +882,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function confirmEditTodoList(id) {
-        console.log(`Confirm edit of todo list ${id}...`);
-
         // Get new todo list name
         const todoListTitleInput = document.querySelector(`#todoListTitleInput${id}`);
 
