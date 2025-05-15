@@ -742,11 +742,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 cardBody.id = `todoList${todoList.id}`;
                 todoListCard.appendChild(cardBody);
 
+                let cardTitleLink = document.createElement("a");
+                cardTitleLink.classList.add("col-9", "m-1", "nav-link");
+                cardTitleLink.href = `/todo-lists/${todoList.id}/`;
+                cardBody.appendChild(cardTitleLink);
+
                 let cardTitle = document.createElement("h5");
-                cardTitle.classList.add("col-9", "m-1", "card-title");
+                cardTitle.classList.add("card-title");
                 cardTitle.id = `todoListTitle${todoList.id}`;
                 cardTitle.innerText = todoList.name;
-                cardBody.appendChild(cardTitle);
+                cardTitleLink.appendChild(cardTitle);
 
                 let cardEditBtn = document.createElement("button");
                 cardEditBtn.classList.add("col-1", "m-1", "btn", "btn-warning");
@@ -792,9 +797,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Add row to todo list view
                 todoListView.appendChild(row);
             });
-
-            // Update page turner
-            // TODO
 
             // Hide busy indicator
             document.querySelector("#todoListSpinner").classList.add("d-none");
